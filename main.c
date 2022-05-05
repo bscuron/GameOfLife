@@ -6,15 +6,17 @@
 #include <time.h>
 #include <string.h>
 
-#define DELAY 100000
 #define INIT_RATE 0.25
+#define DELAY 10000
 
 int rows, cols;
+int generation = 1;
+unsigned long long delay = 100000;
+
 typedef enum CELL_TYPE{
     CELL_DEAD,
     CELL_ALIVE,
 } CELL_TYPE;
-
 
 struct winsize getWinsize(int fd);
 void fillBoard(int board[rows][cols], int type);
@@ -22,6 +24,11 @@ void showBoard(int board[rows][cols]);
 void initBoard(int board[rows][cols]);
 void computeNextGeneration(int board[rows][cols]);
 int getNeighbors(int board[rows][cols], int row, int col);
+void handleKeys(int board[rows][cols]);
+void shiftNorth(int board[rows][cols]);
+void shiftSouth(int board[rows][cols]);
+void shiftEast(int board[rows][cols]);
+void shiftWest(int board[rows][cols]);
 
 int main(void){
     srand(time(NULL));
@@ -34,10 +41,16 @@ int main(void){
     
     initscr();
     curs_set(0);
+    cbreak();
+    noecho();
+    nodelay(stdscr, TRUE);
+    keypad(stdscr, TRUE);
     int quit = 0;
     while(!quit){
+        generation++;
         showBoard(board);
         computeNextGeneration(board);
+        handleKeys(board);
         usleep(DELAY);
     }
     endwin();
@@ -72,6 +85,7 @@ void showBoard(int board[rows][cols]){
             }
         }
     }
+    mvprintw(0, 0, "Generation: %d\n", generation);
     refresh();
 }
 
@@ -112,4 +126,18 @@ int getNeighbors(int board[rows][cols], int row, int col){
     if(col > 1 && board[row][col - 1]) neighbors++;
     if(row > 1 && col > 1 && board[row - 1][col - 1]) neighbors++;
     return neighbors;
+}
+
+void handleKeys(int board[rows][cols]){
+    wchar_t code = getch();
+    switch(code){
+        case -1:
+            return;
+        case KEY_ENTER:
+        case '\n':
+        case ' ':
+            generation = 1;
+            initBoard(board);
+            break;
+    }
 }
