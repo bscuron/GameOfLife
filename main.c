@@ -140,4 +140,8 @@ void handleKeys(int board[rows][cols]){
             initBoard(board);
             break;
     }
+    int codeDup;
+    int dup = 0;
+    while((codeDup = getch()) == code) dup = 1;
+    if(dup) ungetch(codeDup);
 }
